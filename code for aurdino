@@ -1,0 +1,85 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // Adjust address if necessary
+
+int ldr1 = A0;
+float ldrVal1;
+
+int buzzer = 8;
+
+float maxLdr = 10.15;  // Adjusted for 0-1023 range
+float threshold = 85;
+int detect = 0, targetTime = 0;
+
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(ldr1, INPUT);
+  pinMode(buzzer, OUTPUT);
+  
+  lcd.init();   // Initialize the LCD
+  lcd.backlight();  // Turn on backlight
+  
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  lcd.print("FALL DETECTION");
+  lcd.setCursor(5, 1);
+  lcd.print("SYSTEM");
+  delay(500);
+  
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Initializing...");
+  delay(500);
+  
+  lcd.clear();
+  lcd.setCursor(4, 0);
+  lcd.print("Ready");
+}
+
+void loop()
+{
+  // Corrected LDR value calculation
+  ldrVal1=100-(analogRead(ldr1)/maxLdr);
+
+  Serial.print("LDR Value: ");
+  Serial.println(ldrVal1);
+
+  if (ldrVal1 <= threshold && detect == 0)
+  {
+    lcd.clear();
+    lcd.setCursor(2, 0);
+    lcd.print("Fall Detected!!!");
+    Serial.println("Fall Detected!!!"); 
+    detect = 1;
+    targetTime = millis() + 5000;
+  }
+
+  lcd.setCursor(0, 1);
+  lcd.print(ldrVal1);
+  lcd.print("%  ");
+  
+  delay(3000);
+  ldrVal1=100-(analogRead(ldr1)/maxLdr);
+  if(ldrVal1<=threshold && detect==1)
+  {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Climb Detected!!!");
+    Serial.println("Climb Detected!!!"); 
+    detect = 0;
+    targetTime = 0;
+    digitalWrite(buzzer, LOW);
+  }
+
+  if (millis() >= targetTime && detect == 1)
+  {
+    lcd.clear();
+    lcd.setCursor(2, 0);
+    lcd.print("EMERGENCY!!!");
+    Serial.println("EMERGENCY!!!");
+    digitalWrite(buzzer, HIGH);
+  }
+  delay(3000);
+}
