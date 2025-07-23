@@ -10,3 +10,4 @@
 4. Jumper Wires
 5. Mirror(for proj purpose)
 
+[Watch Video](https://photos.app.goo.gl/2jhDBYkXBxawVsbt6)
